@@ -18,28 +18,82 @@
     under the License.
 -->
 <html>
-    <head>
-        <meta charset="utf-8" />
-        <meta name="format-detection" content="telephone=no" />
-        <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
-        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
-        <link rel="stylesheet" type="text/css" href="css/index.css" />
-        <meta name="msapplication-tap-highlight" content="no" />
-        <title>Hello World</title>
-    </head>
-    <body>
-        <div class="app">
-            <h1>Apache Cordova</h1>
-            <div id="deviceready" class="blink">
-                <p class="event listening">Connecting to Device</p>
-                <p class="event received">Device is Ready</p>
-                <button id="WhereAmI">Where am I</button>
-            </div>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="format-detection" content="telephone=no" />
+    <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
+    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+    <link rel="stylesheet" type="text/css" href="css/index.css" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    <title>Hello World</title>
+</head>
+
+<body>
+    <div class="app">
+        <h1>Apache Cordova</h1>
+        <div id="deviceready" class="blink">
+            <p class="event listening">Connecting to Device</p>
+            <p class="event received">Device is Ready</p>
+            <p id="WhereAmI">Where am I</p>
+            <p id="geolocation"></p>
         </div>
-        <script type="text/javascript" src="cordova.js"></script>
-        <script type="text/javascript" src="js/index.js"></script>
-        <script type="text/javascript">
-            app.initialize();
-        </script>
-    </body>
+    </div>
+    <script type="text/javascript" src="cordova.js"></script>
+    <script type="text/javascript" src="js/index.js"></script>
+    <script type="text/javascript">
+        app.initialize();
+
+         // Wait for device API libraries to load
+         //
+        document.addEventListener("deviceready", onDeviceReady, false);
+
+         // device APIs are available
+         //
+        function onDeviceReady() {
+            navigator.geolocation.getCurrentPosition(onSuccess, onError);
+        }
+
+         // onSuccess Geolocation
+         //
+        function onSuccess(position) {
+            var element = document.getElementById('geolocation');
+            var string = 'Latitude: ' + position.coords.latitude + '<br />' +
+                'Longitude: ' + position.coords.longitude + '<br />';
+            element.innerHTML = string;
+            console.log(string);
+            
+            console.log('calling xhr');
+            var request = XMLHttpRequest();
+        request.open("GET", 
+            "http://open.mapquestapi.com/geocoding/v1/reverse?" + 
+"key=Fmjtd|luur2hurn0%2Cbg%3Do5-9wasly&location=" +
+position.coords.latitude + "," + position.coords.longitude, true);
+        request.onreadystatechange = function() {
+            if (request.readyState == 4) {
+                if (request.status == 200 || request.status == 0) {
+                    var city = JSON.parse(request.responseText);
+                    console.log(city.results[0].locations[0].adminArea5);
+                    
+                    var string = 'Latitude: ' + position.coords.latitude + '<br />' +
+                'Longitude: ' + position.coords.longitude + '<br /> You are in: ' + city.results[0].locations[0].adminArea5;
+                    element.innerHTML = string;
+                    
+                }
+            }
+        };
+        request.send();
+        }
+
+         // onError Callback receives a PositionError object
+         //
+        function onError(error) {
+            alert('code: ' + error.code + '\n' +
+                'message: ' + error.message + '\n');
+        }
+         
+
+    </script>
+</body>
+
 </html>
